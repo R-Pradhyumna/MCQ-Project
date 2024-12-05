@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCQ Project</title>
+    <link rel="stylesheet" href="createQuestions.css" />
+  </head>
+  <body>
+    <h1>Enter the questions</h1>
+
+    <form id="quiz-form">
+      <div id="questions-container">
+        <!-- Initial Question 1 -->
+        <div class="question" id="q1">
+          <label for="q1-text">Question 1:</label>
+          <input
+            type="text"
+            id="q1-text"
+            name="q1-text"
+            placeholder="Enter your question"
+            required
+          />
+
+          <label for="q1-correct">Correct Answer:</label>
+          <input
+            type="text"
+            id="q1-correct"
+            name="q1-correct"
+            placeholder="Enter correct answer"
+            required
+          />
+
+          <label for="q1-option2">Option 2:</label>
+          <input
+            type="text"
+            id="q1-option2"
+            name="q1-option2"
+            placeholder="Enter option 2"
+            required
+          />
+
+          <label for="q1-option3">Option 3:</label>
+          <input
+            type="text"
+            id="q1-option3"
+            name="q1-option3"
+            placeholder="Enter option 3"
+            required
+          />
+
+          <label for="q1-option4">Option 4:</label>
+          <input
+            type="text"
+            id="q1-option4"
+            name="q1-option4"
+            placeholder="Enter option 4"
+            required
+          />
+        </div>
+      </div>
+
+      <button type="button" class="add-more" id="add-question-btn">
+        Add More Questions
+      </button>
+      <br /><br />
+      <button type="submit" id="submit-btn">Generate XMl file</button>
+      <a href="./GenerateQuestionPaper.html">Generate 4 versions</a>
+    </form>
+
+    <script>
+      let questionCount = 1;
+
+      // Function to add more questions dynamically
+      document
+        .getElementById("add-question-btn")
+        .addEventListener("click", function () {
+          questionCount++;
+
+          // Create a new question container with unique IDs
+          const questionContainer = document.createElement("div");
+          questionContainer.classList.add("question");
+          questionContainer.id = `q${questionCount}`;
+
+          questionContainer.innerHTML = `
+                <label for="q${questionCount}-text">Question ${questionCount}:</label>
+                <input type="text" id="q${questionCount}-text" name="q${questionCount}-text" placeholder="Enter your question" required>
+
+                <label for="q${questionCount}-correct">Correct Answer:</label>
+                <input type="text" id="q${questionCount}-correct" name="q${questionCount}-correct" placeholder="Enter correct answer" required>
+
+                <label for="q${questionCount}-option2">Option 2:</label>
+                <input type="text" id="q${questionCount}-option2" name="q${questionCount}-option2" placeholder="Enter option 2" required>
+
+                <label for="q${questionCount}-option3">Option 3:</label>
+                <input type="text" id="q${questionCount}-option3" name="q${questionCount}-option3" placeholder="Enter option 3" required>
+
+                <label for="q${questionCount}-option4">Option 4:</label>
+                <input type="text" id="q${questionCount}-option4" name="q${questionCount}-option4" placeholder="Enter option 4" required>
+            `;
+
+          // Append the new question container to the form
+          document
+            .getElementById("questions-container")
+            .appendChild(questionContainer);
+        });
+
+      // Handle form submission
+      document
+        .getElementById("quiz-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          let questions = [];
+
+          // Collect data for all questions
+          for (let i = 1; i <= questionCount; i++) {
+            let questionText = document.getElementById(`q${i}-text`).value;
+            let correctAnswer = document.getElementById(`q${i}-correct`).value;
+            let option2 = document.getElementById(`q${i}-option2`).value;
+            let option3 = document.getElementById(`q${i}-option3`).value;
+            let option4 = document.getElementById(`q${i}-option4`).value;
+
+            if (
+              questionText &&
+              correctAnswer &&
+              option2 &&
+              option3 &&
+              option4
+            ) {
+              questions.push({
+                question: questionText,
+                correctAnswer: correctAnswer,
+                options: [correctAnswer, option2, option3, option4],
+              });
+            }
+          }
+
+          // Create XML structure
+          let xmlDoc = document.implementation.createDocument("", "Quiz", null);
+          let quizElement = xmlDoc.documentElement;
+
+          questions.forEach((q) => {
+            let questionElement = xmlDoc.createElement("Question");
+
+            let questionText = xmlDoc.createElement("Text");
+            questionText.textContent = q.question;
+            questionElement.appendChild(questionText);
+
+            let optionsElement = xmlDoc.createElement("Options");
+            q.options.forEach((option) => {
+              let optionElement = xmlDoc.createElement("Option");
+              optionElement.textContent = option;
+              optionsElement.appendChild(optionElement);
+            });
+            questionElement.appendChild(optionsElement);
+
+            let correctAnswerElement = xmlDoc.createElement("CorrectAnswer");
+            correctAnswerElement.textContent = q.correctAnswer;
+            questionElement.appendChild(correctAnswerElement);
+
+            quizElement.appendChild(questionElement);
+          });
+
+          // Serialize XML to string
+          let serializer = new XMLSerializer();
+          let xmlString = serializer.serializeToString(xmlDoc);
+
+          // Create a Blob and download the XML file
+          let blob = new Blob([xmlString], { type: "application/xml" });
+          let link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "quiz_data.xml";
+          link.click();
+        });
+    </script>
+  </body>
+</html>

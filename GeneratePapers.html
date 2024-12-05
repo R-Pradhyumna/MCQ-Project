@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Display from XML</title>
+    <link rel="stylesheet" href="GeneratePapers.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <div class="quiz-container">
+      <h1>Upload and Display Quiz</h1>
+
+      <!-- File Upload Section -->
+      <div class="file-input-container">
+        <label for="file-input">Upload XML file:</label>
+        <input type="file" id="file-input" accept=".xml" />
+      </div>
+
+      <!-- Quiz Display Section -->
+      <div id="quiz-container"></div>
+
+      <!-- Generate PDF Button -->
+      <button type="button" id="generate-pdf-btn" style="display: none">
+        Generate PDFs
+      </button>
+    </div>
+
+    <script>
+      // Function to read the XML file
+      function readXMLFile(file, callback) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(
+            event.target.result,
+            "application/xml"
+          );
+          callback(xmlDoc);
+        };
+        reader.readAsText(file);
+      }
+
+      // Shuffle the array using Fisher-Yates algorithm
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+        }
+      }
+
+      // Function to generate the quiz based on XML data
+      function generateQuiz(xmlDoc) {
+        const quizContainer = document.getElementById("quiz-container");
+        const questions = Array.from(xmlDoc.getElementsByTagName("Question"));
+
+        // Shuffle the questions before displaying them
+        shuffleArray(questions);
+
+        // Clear previous content in case the file is updated
+        quizContainer.innerHTML = "";
+
+        // Loop through each question in the shuffled array
+        for (let i = 0; i < questions.length; i++) {
+          const questionElem = questions[i];
+          const questionText =
+            questionElem.getElementsByTagName("Text")[0].textContent;
+          const options = Array.from(
+            questionElem.getElementsByTagName("Option")
+          );
+          const correctAnswer =
+            questionElem.getElementsByTagName("CorrectAnswer")[0].textContent;
+
+          // Ensure the options are not empty or undefined
+          if (options.length === 0) {
+            console.warn(`Question ${i + 1} has no options. Skipping.`);
+            continue; // Skip questions without options
+          }
+
+          // Shuffle the options for each question independently
+          shuffleArray(options);
+
+          const questionDiv = document.createElement("div");
+          questionDiv.classList.add("question");
+
+          // Create question label with number
+          const questionLabel = document.createElement("label");
+          questionLabel.textContent = `${i + 1}. ${questionText}`;
+          questionDiv.appendChild(questionLabel);
+
+          // Create a container for options
+          const optionsDiv = document.createElement("div");
+          optionsDiv.classList.add("question-options");
+
+          // Create radio buttons for options
+          options.forEach((option, j) => {
+            const optionText = option.textContent.trim(); // Remove any extra spaces
+            const optionInput = document.createElement("input");
+            optionInput.type = "radio";
+            optionInput.name = `q${i + 1}`; // Ensure each question has a unique name
+            optionInput.value = optionText;
+            optionInput.id = `q${i + 1}-option${j + 1}`;
+
+            const optionLabel = document.createElement("label");
+            optionLabel.setAttribute("for", `q${i + 1}-option${j + 1}`);
+            optionLabel.textContent = optionText;
+
+            // Highlight correct answer by adding a specific style
+            if (optionText === correctAnswer) {
+              optionLabel.style.fontWeight = "bold"; // Make correct answer bold
+              optionLabel.style.color = "green"; // Change color to green for correct answer
+            }
+
+            optionsDiv.appendChild(optionInput);
+            optionsDiv.appendChild(optionLabel);
+            optionsDiv.appendChild(document.createElement("br"));
+          });
+
+          questionDiv.appendChild(optionsDiv);
+          quizContainer.appendChild(questionDiv);
+        }
+
+        // Show the "Generate PDF" button once the quiz is generated
+        document.getElementById("generate-pdf-btn").style.display = "inline";
+      }
+
+      // Handle file input change (load the XML)
+      document
+        .getElementById("file-input")
+        .addEventListener("change", function (event) {
+          const file = event.target.files[0];
+          if (file) {
+            readXMLFile(file, function (xmlDoc) {
+              generateQuiz(xmlDoc);
+            });
+          }
+        });
+
+      // Function to generate the PDFs (4 versions)
+      document
+        .getElementById("generate-pdf-btn")
+        .addEventListener("click", function () {
+          const { jsPDF } = window.jspdf;
+
+          const quizContainer = document.getElementById("quiz-container");
+          const questions = quizContainer.getElementsByClassName("question");
+
+          // Page settings
+          const pageHeight = 297; // A4 page height in mm
+          const marginTop = 20; // Top margin
+          const marginBottom = 20; // Bottom margin
+          const lineSpacing = 10; // Line height between content
+
+          // Loop to generate 4 PDFs
+          for (let pdfIndex = 0; pdfIndex < 4; pdfIndex++) {
+            const shuffledQuestions = Array.from(questions);
+            shuffleArray(shuffledQuestions);
+
+            const pdfDoc = new jsPDF();
+            let yPosition = marginTop;
+
+            pdfDoc.setFontSize(18);
+
+            // Set the quiz set name
+            const setName = `Set ${String.fromCharCode(65 + pdfIndex)}`;
+            pdfDoc.text(setName, 20, yPosition); // Display the set name at the top
+            yPosition += lineSpacing;
+
+            pdfDoc.text("Quiz Questions", 20, yPosition); // Title of the quiz
+            yPosition += lineSpacing;
+
+            // Add shuffled questions to the PDF
+            shuffledQuestions.forEach((questionElem, i) => {
+              const questionText =
+                questionElem.querySelector("label").textContent;
+              const questionTextWithoutNumber = questionText.replace(
+                /^\d+\.\s*/,
+                ""
+              );
+
+              pdfDoc.setFontSize(12);
+              if (yPosition + lineSpacing > pageHeight - marginBottom) {
+                pdfDoc.addPage(); // Add a new page when yPosition exceeds page height
+                yPosition = marginTop;
+              }
+              pdfDoc.text(`${i + 1}.`, 20, yPosition); // Add only the number
+              pdfDoc.text(questionTextWithoutNumber, 30, yPosition); // Add the question text after the number
+              yPosition += lineSpacing;
+
+              const options = questionElem.querySelectorAll(
+                ".question-options label"
+              );
+              options.forEach((option) => {
+                if (yPosition + lineSpacing > pageHeight - marginBottom) {
+                  pdfDoc.addPage();
+                  yPosition = marginTop;
+                }
+
+                // Highlight correct answer in PDF (e.g., change color to green or bold)
+                if (option.style.color === "green") {
+                  pdfDoc.setTextColor(0, 128, 0); // Set text color to green for correct answer
+                  pdfDoc.setFont("helvetica", "bold");
+                } else {
+                  pdfDoc.setTextColor(0, 0, 0);
+                  pdfDoc.setFont("helvetica", "normal");
+                }
+
+                pdfDoc.text(`- ${option.textContent}`, 30, yPosition);
+                yPosition += lineSpacing;
+              });
+
+              yPosition += 5;
+            });
+
+            pdfDoc.save(`Quiz_Set${String.fromCharCode(65 + pdfIndex)}.pdf`);
+          }
+        });
+    </script>
+  </body>
+</html>

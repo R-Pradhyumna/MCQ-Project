@@ -1,0 +1,125 @@
+/* Global Styles */
+body {
+  font-family: "Arial", sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.quiz-container {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* File Input */
+.file-input-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input[type="file"] {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+/* Questions Styling */
+.question {
+  margin-bottom: 20px;
+  word-wrap: break-word; /* Ensures long questions wrap properly */
+}
+
+.question label {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  word-wrap: break-word; /* Prevent overflow and wrap long questions */
+  overflow-wrap: break-word; /* Ensures text breaks within container */
+  max-width: 100%; /* Prevents the text from going outside the container */
+}
+
+.question-options {
+  margin-left: 20px;
+  word-wrap: break-word; /* Ensure options wrap properly too */
+}
+
+.question-options label {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  color: #555;
+  transition: color 0.3s;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.question-options input[type="radio"] {
+  margin-right: 10px;
+}
+
+.question-options label:hover {
+  color: #007bff;
+}
+
+/* Generate PDF Button */
+#generate-pdf-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background-color: #28a745;
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+}
+
+#generate-pdf-btn:hover {
+  background-color: #218838;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .quiz-container {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .question label {
+    font-size: 16px;
+  }
+
+  .question-options label {
+    font-size: 14px;
+  }
+
+  #generate-pdf-btn {
+    font-size: 16px;
+  }
+}
