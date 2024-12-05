@@ -14,3 +14,5 @@ The GeneratePapers.html file allows users to upload the XML file of the entered 
 Clicking on the Generate PDFS button will automatically download 4 PDFs where the questions and options are shuffled randomly, the correct answer being highlighted.
 
 This is currently Phase 1 of the project, For Phase-2 i have thought of designing a web document where the word format template is displayed to the users and they can download the word document directly without having to worry about alignment issues and shuffling.
+
+Clone the repository and open index.html file using live server.
